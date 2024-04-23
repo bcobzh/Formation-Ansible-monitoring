@@ -1,0 +1,9 @@
+---
+- name: Install prometheus
+  ansible.builtin.import_playbook: prometheus_install.yaml
+- name: Servers to monitor
+  ansible.builtin.import_playbook: serveurs-web.yaml
+- name: alertmanager
+  ansible.builtin.import_playbook: alertmanager.yaml
+- name: grafana
+  ansible.builtin.import_playbook: grafana.yaml

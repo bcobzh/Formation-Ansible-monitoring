@@ -1,0 +1,19 @@
+web-preprod:
+  hosts:
+    web-pp-1:
+      ansible_host: 192.168.122.18
+      ansible_user: ubuntu
+web-prod:
+  hosts:
+    web-prod-1:
+      ansible_host: 192.168.122.58
+      ansible_user: ubuntu
+metric:
+  hosts:
+    grafana:
+      ansible_host: 192.168.122.35
+      ansible_user: ubuntu
+web:
+  children:
+    web-prod:
+    web-preprod:

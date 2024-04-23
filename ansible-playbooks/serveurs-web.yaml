@@ -1,0 +1,69 @@
+---
+- hosts: web
+  gather_facts: true
+  become: true
+  vars_files:
+    - grafana_vars.yaml
+  tasks:
+    - name: Ensure node exporter is installed
+      package:
+        name:
+          - prometheus-node-exporter
+          - unzip
+    - name: Enable service and start it
+      ansible.builtin.systemd_service:
+        name: prometheus-node-exporter
+        enabled: true
+        state: started
+    - name: Ensure group "promtail" exists
+      ansible.builtin.group:
+        name: promtail
+        state: present
+    - name: Create the promtail user
+      ansible.builtin.user:
+        name: promtail
+        group: promtail
+        shell: /usr/sbin/nologin
+        system: True
+        createhome: False
+    - name: download promtail
+      ansible.builtin.get_url:
+        url: https://github.com/grafana/loki/releases/download/v2.9.4/promtail-linux-amd64.zip
+        dest: /tmp/promtail-linux-amd64.zip
+    - name: extract promtail binary
+      ansible.builtin.unarchive:
+        src: /tmp/promtail-linux-amd64.zip
+        dest: /usr/local/bin
+        remote_src: true
+        mode: 0755
+    - name: Create  symbolic link
+      ansible.builtin.file:
+        src: /usr/local/bin/promtail-linux-amd64
+        dest: /usr/local/bin/promtail
+        state: link
+    - name: Create systemd service unit
+      ansible.builtin.template:
+        src: templates/promtail-service.j2
+        dest: "/etc/systemd/system/promtail.service"
+        mode: 0644
+    - name: Creates directory
+      ansible.builtin.file:
+        path: /etc/promtail
+        state: directory
+    - name: template file to promtail.conf
+      ansible.builtin.template:
+        src: templates/promtail-config.yaml.j2
+        dest: /etc/promtail/promtail.conf
+        mode: '0644'
+      register: promtail
+    - name: Ensure promtail service is started and enabled
+      systemd:
+        daemon_reload: True
+        name: promtail.service
+        state: restarted
+        enabled: True
+    - name: reload loky server
+      ansible.builtin.systemd_service:
+        name: loki
+        state: restarted
+        enabled: true

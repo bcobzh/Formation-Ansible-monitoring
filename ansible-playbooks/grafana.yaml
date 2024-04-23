@@ -1,0 +1,78 @@
+---
+- hosts: grafana
+  gather_facts: false
+  become: true
+  vars_files:
+    - grafana_vars.yaml
+  tasks:
+    - name: Gather the package facts
+      ansible.builtin.package_facts:
+        manager: auto
+    - name: Ensure preriquired packages are present
+      package:
+        name:
+          - python3
+          - python3-psycopg2
+          - apt-transport-https
+          - software-properties-common
+          - wget
+          - nginx
+    - name: Gather the package facts
+      ansible.builtin.package_facts:
+        manager: auto
+    - name: Add grafana source list and install it
+      block:
+        - name: grafan |no apt key
+          ansible.builtin.shell:
+            cmd: wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | sudo tee /etc/apt/keyrings/grafana.gpg > /dev/null
+        - name: grafana| apt source
+          ansible.builtin.apt_repository:
+            repo: "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main"
+            state: present
+        - name: Update apt repo and cache
+          apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+        - name: Install grafana
+          package:
+            name:
+              - grafana
+        - name: reload grafana
+          ansible.builtin.systemd_service:
+            name: grafana-server
+            state: restarted
+            enabled: true
+      when: "'grafana' not in ansible_facts.packages"
+    - name: Create private key (RSA, 4096 bits)
+      community.crypto.openssl_privatekey:
+        path: /etc/ssl/private/grafana-selfsigned.key
+        size: 2048
+        mode: "0600"
+        type: RSA
+        state: present
+    - name: Create certificate signing request (CSR) for self-signed certificate
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: /etc/ssl/private/grafana-selfsigned.key
+        common_name: "{{ hostname }}"
+        organization_name: "{{ organisation }}"
+      register: csr
+    - name: Create simple self-signed certificate
+      community.crypto.x509_certificate:
+        path: /etc/ssl/certs/grafana-selfsigned.crt
+        privatekey_path: /etc/ssl/private/grafana-selfsigned.key
+        csr_content: "{{ csr.csr }}"
+        provider: selfsigned
+        mode: "0644"
+    - name: Template a file to /etc/nginx/sites-enabled/grafana
+      ansible.builtin.template:
+        src: templates/nginx-grafana.j2
+        dest: /etc/nginx/sites-enabled/grafana
+        mode: '0644'
+      register: nginx_conf
+    - name: reload nginx
+      ansible.builtin.systemd_service:
+        name: nginx
+        state: restarted
+        enabled: true
+      when: nginx_conf.changed
+
+
+

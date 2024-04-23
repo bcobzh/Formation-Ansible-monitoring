@@ -1,0 +1,11 @@
+  groups:
+  - name: webservers
+    rules:
+    - alert: Ram Usage
+      expr: "round(node_memory_MemFree_bytes  / node_memory_MemTotal_bytes,0.01)  >= 1"
+      for: 10s
+      labels:
+        severity: critical
+      annotations:
+        summary: "{{ $labels.instance }} - hight cup usage"
+        description: "Le server utilse plus de 80% de cpu"

@@ -1,0 +1,103 @@
+##################################################
+# DO Community Playbooks: LAMP on Ubuntu 18.04
+##################################################
+---
+- hosts: web
+  become: true
+  vars_files:
+    - vars/default.yml
+
+  tasks:
+    - name: Install prerequisites
+      apt: name={{ item }} update_cache=yes state=latest force_apt_get=yes
+      loop: [ 'aptitude' ]
+
+  #Apache Configuration
+    - name: Install LAMP Packages
+      apt: name={{ item }} update_cache=yes state=latest
+      loop: [ 'ufw', 'apache2', 'mariadb-server', 'python3-pymysql', 'php', 'php-mysql', 'libapache2-mod-php' ]
+
+    - name: Create document root
+      file:
+        path: "/var/www/{{ http_host }}"
+        state: directory
+        owner: "{{ app_user }}"
+        mode: '0755'
+
+    - name: Set up Apache virtualhost
+      template:
+        src: "templates/apache.conf.j2"
+        dest: "/etc/apache2/sites-available/{{ http_conf }}"
+      notify: Reload Apache
+
+    - name: Enable new site
+      shell: /usr/sbin/a2ensite {{ http_conf }}
+      notify: Reload Apache
+
+    - name: Disable default Apache site
+      shell: /usr/sbin/a2dissite 000-default.conf
+      when: disable_default
+      notify: Reload Apache
+  # MySQL Configuration
+    - name: Sets the root password
+      mysql_user:
+        name: root
+        password: "{{ mysql_root_password }}"
+        login_password: "{{ mysql_root_password }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+
+    - name: Removes all anonymous user accounts
+      mysql_user:
+        name: ''
+        host_all: yes
+        state: absent
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+
+    - name: Removes the MySQL test database
+      mysql_db:
+        name: test
+        state: absent
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+    - name: Add website database
+      mysql_db:
+        name: "{{ mysql_web_user }}"
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+
+    - name: Add Mysql User for website
+      mysql_user:
+        name: "{{ mysql_web_user }}"
+        password: "{{ mysql_web_user_password}}"
+        login_host : localhost
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        priv: "{{ mysql_web_user }}.*:ALL,GRANT"
+
+  # UFW Configuration
+    - name: "UFW - Allow HTTP on port {{ http_port }}"
+      ufw:
+        rule: allow
+        port: "{{ http_port }}"
+        proto: tcp
+
+  # PHP Info Page
+    - name: Sets Up PHP Pages
+      template:
+        src: "files/{{ item }}"
+        dest: "/var/www/{{ http_host }}/{{ item }}"
+      loop: [ "info.php", "php-stress.php"]
+
+  handlers:
+    - name: Reload Apache
+      service:
+        name: apache2
+        state: reloaded
+
+    - name: Restart Apache
+      service:
+        name: apache2
+        state: restarted

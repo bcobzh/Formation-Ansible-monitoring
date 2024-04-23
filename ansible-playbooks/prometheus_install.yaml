@@ -1,0 +1,54 @@
+---
+- hosts: grafana
+  gather_facts: false
+  become: true
+  vars_files:
+    - grafana_vars.yaml
+  tasks:
+    - name: Ensure preriquired packages are present
+      package:
+        name:
+          - python3
+          - python3-psycopg2
+          - apt-transport-https
+          - software-properties-common
+          - wget
+          - prometheus
+          - loki
+    - name: Creates directory
+      ansible.builtin.file:
+        path: /etc/prometheus/rules
+        state: directory
+        owner: prometheus
+        group: prometheus
+    - name: push alertes rules
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: /etc/prometheus/rules/
+      with_fileglob:
+      - files/alertes/*.yml
+      register: prometheus_conf
+    - name: Template a file to /etc/prometheus/prometheus.yml
+      ansible.builtin.template:
+        src: templates/prometheus.yaml.j2
+        dest: /etc/prometheus/prometheus.yml
+        mode: '0644'
+      register: prometheus_conf
+    - name: fill /etc/default/prometheus ARGS
+      ansible.builtin.template:
+        src: templates/prometheus_args.j2
+        dest:  /etc/default/prometheus
+      register: prometheus_conf
+    - name: fill /etc/hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regex: '.*{{ item.ip }}'
+        line: '{{ item.ip }} {{ item.name }}'
+      loop: "{{ nodes }}"
+    - name: reload prometheus
+      ansible.builtin.systemd_service:
+        name: prometheus
+        state: restarted
+        enabled: true
+      when: prometheus_conf.changed
+

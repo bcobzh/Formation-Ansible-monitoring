@@ -1,0 +1,63 @@
+---
+- hosts: grafana
+  gather_facts: true
+  become: true
+  vars_files:
+    - grafana_vars.yaml
+  tasks:
+    - name: Ensure group "alertmanager" exists
+      ansible.builtin.group:
+        name: alertmanager
+        state: present
+    - name: Create the alertmanager user
+      ansible.builtin.user:
+        name: alertmanager
+        group: alertmanager
+        shell: /usr/sbin/nologin
+        system: True
+        createhome: False
+    - name: Creates directory
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: alertmanager
+        group: alertmanager
+      loop:
+        - /etc/alertmanager
+        - /var/lib/alertnanager
+    - name: download alerteManager
+      ansible.builtin.get_url:
+        url: https://github.com/prometheus/alertmanager/releases/download/v0.27.0/alertmanager-0.27.0.linux-amd64.tar.gz
+        dest: /tmp/alertmanager-{{ alertmanager.version }}.linux-amd64.tar.gz
+    - name: extract promtail binary
+      ansible.builtin.unarchive:
+        src: /tmp/alertmanager-{{ alertmanager.version }}.linux-amd64.tar.gz
+        dest: /tmp
+        remote_src: true
+        mode: 0755
+    - name: Copy alertmanager binary files
+      ansible.builtin.copy:
+        src: /tmp/alertmanager-{{ alertmanager.version }}.linux-amd64/{{ item }}
+        dest: /usr/local/bin/{{ item }}
+        remote_src: yes
+        mode: '0755'
+      loop:
+        - alertmanager
+        - amtool
+    - name: template file to alerteManager
+      ansible.builtin.template:
+        src: templates/alertmanager-{{ alertmanager.conf  }}.yml.j2
+        dest: /etc/alertmanager/alertmanager.yaml
+        mode: '0644'
+      register: promtail
+    - name: Create systemd service unit
+      ansible.builtin.template:
+        src: templates/alertmanager-service.j2
+        dest: "/etc/systemd/system/alertmanager.service"
+        mode: 0644
+    - name: Ensure alertmanager service is started and enabled
+      systemd:
+        daemon_reload: True
+        name: alertmanager.service
+        state: restarted
+        enabled: True
