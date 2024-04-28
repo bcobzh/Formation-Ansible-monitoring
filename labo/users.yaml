@@ -1,0 +1,22 @@
+- hosts: all
+  gather_facts: false
+  tasks:
+  - name: Add the users for lab
+    ansible.builtin.user:
+      name: formation
+      groups: sudo
+      create_home: true
+      shell: /usr/bin/bash
+  - name: Set authorized key taken from file
+    ansible.posix.authorized_key:
+      user: formation
+      state: present
+      key: "{{ item }}"
+    with_file:
+      - /home/benoit/.ssh/id_rsa.pub
+  - name: allow ubuntu user to use sudo without password
+    community.general.sudoers:
+      name: ansible-service
+      user: formation
+      commands: ALL
+      nopassword: true

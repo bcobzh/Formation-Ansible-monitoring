@@ -13,5 +13,8 @@
     <IfModule mod_dir.c>
         DirectoryIndex index.php index.html index.cgi index.pl  index.xhtml index.htm
     </IfModule>
+    <FilesMatch \.php$>
+      SetHandler "proxy:unix:/run/php/php8.1-fpm.sock|fcgi://localhost/"
+   </FilesMatch>
 
 </VirtualHost>

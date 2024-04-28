@@ -14,8 +14,11 @@
 
   #Apache Configuration
     - name: Install LAMP Packages
-      apt: name={{ item }} update_cache=yes state=latest
-      loop: [ 'ufw', 'apache2', 'mariadb-server', 'python3-pymysql', 'php', 'php-mysql', 'libapache2-mod-php' ]
+      apt:
+        name: [ 'ufw', 'apache2', 'mariadb-server', 'python3-pymysql',
+               'php', 'php-mysql', 'php-fpm', 'libapache2-mod-php', 'stress'  ]
+        update_cache: yes
+        state: latest
 
     - name: Create document root
       file:
@@ -32,6 +35,16 @@
 
     - name: Enable new site
       shell: /usr/sbin/a2ensite {{ http_conf }}
+      notify: Reload Apache
+
+    - name: apache modules
+      apache2_module:
+        name: "{{ item }}"
+        state: present
+      loop: ["proxy_fcgi", "setenvif"]
+
+    - name: Enable new site
+      shell: /usr/sbin/a2enconf php8.1-fpm
       notify: Reload Apache
 
     - name: Disable default Apache site
