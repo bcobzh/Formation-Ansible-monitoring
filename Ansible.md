@@ -10,7 +10,7 @@ est le cas de la majorité des serveurs fonctionnant avec Linux
 ## Installation
 
 ```sh
- python3 -m pip install [--user] ansible [ --break-system-packages]
+ python -m pip install [--user] ansible [ --break-system-packages]
 ```
 
 ## Inventaire : Configuration des serveurs
