@@ -3,17 +3,17 @@ hostname: grafana-demo.test
 organisation: mon_organisation
 mysqld_exporter_password: "secret"
 grafana:
-  ip: 192.168.122.229
+  ip: 164.92.178.99
 nodes:
-  - name : web-pp-1
-    ip: 192.168.122.18
-  - name : web-prod-1
-    ip: 192.168.122.58
+  - name : web1
+    ip: 165.227.164.114
+  - name : web2
+    ip: 206.81.29.155
 prometheus:
   daemon_args:
     - --web.console.templates=/var/lib/prometheus/consoles
     - --web.console.libraries=/var/lib/prometheus/console_libraries
-    - --web.external-url http://192.168.122.229
+    - --web.external-url http://164.92.178.99
 alertmanager:
   version: 0.27.0
   conf: slack

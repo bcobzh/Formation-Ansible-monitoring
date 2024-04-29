@@ -45,6 +45,7 @@ scrape_configs:
         - 'localhost:9100'
 {% for server in nodes %}
         - {{ server.name }}:9100
+        - {{ server.name }}:9104
 {% endfor %}
   - job_name: elasticseach
     static_configs:

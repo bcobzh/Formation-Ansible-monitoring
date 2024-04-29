@@ -2,7 +2,7 @@
 # DO Community Playbooks: LAMP on Ubuntu 18.04
 ##################################################
 ---
-- hosts: web
+- hosts: all
   become: true
   vars_files:
     - vars/default.yml
@@ -44,7 +44,7 @@
       loop: ["proxy_fcgi", "setenvif"]
 
     - name: Enable new site
-      shell: /usr/sbin/a2enconf php8.1-fpm
+      shell: /usr/sbin/a2enconf php8.2-fpm
       notify: Reload Apache
 
     - name: Disable default Apache site
@@ -99,7 +99,7 @@
         state: present
         login_user: root
         login_password: "{{ mysql_root_password }}"
-        priv: "*.*:PROCESS,REPLICATION CLIENT,SELECT"
+        priv: "*.*:PROCESS,REPLICATION CLIENT,SELECT,SUPER,SLAVE MONITOR"
 
     - name: download mysql-exporter
       ansible.builtin.get_url:

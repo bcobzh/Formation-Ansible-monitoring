@@ -1,6 +1,6 @@
 lab:
   hosts:
-    graphana:
+    grafana:
       ansible_host: 164.92.178.99
       ansible_user: root
     web1:
