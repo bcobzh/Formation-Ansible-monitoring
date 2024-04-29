@@ -84,12 +84,55 @@
       mysql_user:
         name: "{{ mysql_web_user }}"
         password: "{{ mysql_web_user_password}}"
+        host: "%"
         login_host : localhost
         state: present
         login_user: root
         login_password: "{{ mysql_root_password }}"
         priv: "{{ mysql_web_user }}.*:ALL,GRANT"
+    - name: Add Mysqld exporter
+      mysql_user:
+        name: "exporter"
+        password: "{{ mysqld_exporter_password}}"
+        host: "localhost"
+        login_host : localhost
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        priv: "*.*:PROCESS,REPLICATION CLIENT,SELECT"
 
+    - name: download mysql-exporter
+      ansible.builtin.get_url:
+        url: https://github.com/prometheus/mysqld_exporter/releases/download/v0.15.1/mysqld_exporter-0.15.1.linux-amd64.tar.gz
+        dest: /tmp/mysqld_exporter-0.15.1.linux-amd64.tar.gz
+    - name: extract mysql-exporter binary
+      ansible.builtin.unarchive:
+        src: /tmp/mysqld_exporter-0.15.1.linux-amd64.tar.gz
+        dest: /tmp/
+        remote_src: true
+        mode: 0755
+    - name: move myql-exporter to /usr/local/bin
+      ansible.builtin.copy:
+        src: /tmp/mysqld_exporter-0.15.1.linux-amd64/mysqld_exporter
+        dest: /usr/local/bin/mysqld_exporter
+        remote_src: yes
+        mode: 0755
+    - name: Create mysql client file for exporter
+      ansible.builtin.template:
+        src: templates/mysqld-exporter.cnf.j2
+        dest: "/etc/mysql/mysqld-exporter.cnf"
+        mode: 0644
+    - name: Create systemd service unit for mysqld_exporter
+      ansible.builtin.template:
+        src: files/mysqld_exporter.service
+        dest: "/etc/systemd/system/mysqld_exporter.service"
+        mode: 0644
+    - name: Ensure mysqld_exporter service is started and enabled
+      systemd:
+        daemon_reload: True
+        name: mysqld_exporter.service
+        state: restarted
+        enabled: True
   # UFW Configuration
     - name: "UFW - Allow HTTP on port {{ http_port }}"
       ufw:

@@ -1,6 +1,7 @@
 ---
 hostname: grafana-demo.test
 organisation: mon_organisation
+mysqld_exporter_password: "secret"
 grafana:
   ip: 192.168.122.229
 nodes:
