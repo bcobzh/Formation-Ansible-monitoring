@@ -9,6 +9,10 @@ est le cas de la majorité des serveurs fonctionnant avec Linux
 
 ## Installation
 
+```sh
+ python3 -m pip install --user ansible [ --break-system-packages]
+```
+
 ## Inventaire : Configuration des serveurs
 
 L'inventaire Ansible décrit les serveurs à adresser, il permet de grouper ceux-ci par role.
