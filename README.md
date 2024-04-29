@@ -3,7 +3,6 @@
 ## Prérequis
 * Un accès ssh depuis les postes de travail vers les différents serveurs
 * Python 3 installé sur les postes de travail (Ansible)
-* Pour Une VM Ubuntu, pour le labo Grafana, sur DigitalOcean pouvant accéder aux serveurs de préproduction
 
 ## `Ansible`
 
