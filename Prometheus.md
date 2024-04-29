@@ -1,7 +1,7 @@
 # Prometheus
 
 ## Qu'est-ce que Prometheus'
-Outils de monitoring, qui permet d'agréger les métriques de différents conteneurs, serveurs, applicatifs
+Outil de monitoring, qui permet d'agréger les métriques de différents conteneurs, serveurs, applicatifs
 
 * Principalement utilisé sur des environnements de conteneurs hautement dynamiques
    * Kubernetes, Docker Swarm, etc
@@ -10,12 +10,12 @@ Outils de monitoring, qui permet d'agréger les métriques de différents conten
 
 ## Pourquoi utiliser Prometheus
 
-Sur des infrastructures complexes, il est difficile de déterminer ce qui ne va pas : hardware, réseau, application...
+Sur des infrastructures complexes, il est difficile de déterminer rapidement ce qui ne va pas : hardware, réseau, application...
 
-Prometheus monitore tous les services et peut générer des alertes avec un outil tiers : alertemanager
+Prometheus monitore tous les services et peut générer des alertes avec un outil tiers : Alertemanager
 
 
-## Comment Prometheus focntionne
+## Comment Prometheus fonctionne
 
 * Serveur Prometheus
 
@@ -23,8 +23,9 @@ Prometheus monitore tous les services et peut générer des alertes avec un outi
    * "Time Series Database" : reçoit les métriques et les stocke
    * "HTTP Server", expose les métriques.
 
-* Clients
+* Clients (Serveurs, service à monitorer)
   * Expose les métriques : "Exporter" formate les logs d'une '
+
 
 ## Que peut monitorer Prometheus
 

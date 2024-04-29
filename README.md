@@ -1,4 +1,4 @@
-# Formation `GoAndLive`
+# Formation`
 
 ## Prérequis
 * Un accès ssh depuis les postes de travail vers les différents serveurs
