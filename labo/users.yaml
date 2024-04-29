@@ -14,6 +14,10 @@
       key: "{{ item }}"
     with_file:
       - /home/benoit/.ssh/id_rsa.pub
+      - /tmp/morgan
+      - /tmp/vincent
+      - /tmp/fabrice
+      - /tmp/jerome
   - name: allow ubuntu user to use sudo without password
     community.general.sudoers:
       name: ansible-service

@@ -9,4 +9,17 @@ lab:
     web2:
       ansible_host: 206.81.29.155
       ansible_user: root
+    vincent:
+      ansible_host: 138.197.178.231
+      ansible_user: root
+    fabrice:
+      ansible_host: 167.71.32.48
+      ansible_user: root
+    jerome:
+      ansible_host: 164.92.177.189
+      ansible_user: root
+    morgan:
+      ansible_host: 159.65.118.201
+      ansible_user: root
+
 
